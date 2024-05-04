@@ -1,1 +1,4 @@
 fastapi==0.110.3
+SQLAlchemy==2.0.29
+pytest==8.2.0
+psycopg2==2.9.9
