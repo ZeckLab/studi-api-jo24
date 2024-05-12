@@ -19,4 +19,6 @@ Connexion avec une base de données PostgreQSL
 - launch app with :
 ```python -m uvicorn main:app --reload```
 
-- go to http://127.0.0.1:8000/
+- go to http://127.0.0.1:8000
+- go to https://studi-api-jo24.azurewebsites.net/docs to see the api docs
+- go to https://studi-api-jo24.azurewebsites.net/api/events to see the events via the endpoint
