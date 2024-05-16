@@ -6,13 +6,13 @@ from sqlalchemy import Row, inspect, text
 
 def test_creation_table_event():
     # Drop table if exists
-    Base.metadata.drop_all(bind=engine, tables=[Event.__table__])
+    #Base.metadata.drop_all(bind=engine, tables=[Event.__table__])
     
     # Recreate table
-    Base.metadata.create_all(
-        bind=engine,
-        tables=[Event.__table__],
-    )
+    #Base.metadata.create_all(
+    #    bind=engine,
+    #    tables=[Event.__table__],
+    #)
     
     inspection = inspect(engine)
     print(inspection.get_table_names())

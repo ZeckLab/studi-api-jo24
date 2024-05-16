@@ -25,15 +25,24 @@ async def create_offer(offer_in: OfferBase, db=Depends(get_db)):
 
 '''Get all offers'''
 @router.get("", response_model=list[OfferInDB])
-async def get_all(db: Session = Depends(get_db)):
-    offer_list = await offer_controller.get_all(db, "all")
+async def get_all(db: Session = Depends(get_db), c: str | None = None, order: str | None = None):
+    """
+        Get all offers :
+        Can be sorted by column_name c  as /api/offers?c=column_name&order=asc|desc
+    """
+    offer_list = await offer_controller.get_all(db, "all", (c if c is not None else ""), (order if order is not None else ""))
     return offer_list
 
 
 '''Get all offers visible'''
 @router.get("/visible", response_model=list[OfferInDB])
-async def get_all_visible(db: Session = Depends(get_db)):
-    offer_list = await offer_controller.get_all(db, "visible")
+async def get_all_visible(db: Session = Depends(get_db), c: str | None = None, order: str | None = None):
+    """
+        Get all offers visible :
+        Can be sorted by column_name c  as /api/offers/visible?c=column_name&order=asc|desc
+    """
+    
+    offer_list = await offer_controller.get_all(db, "visible", (c if c is not None else ""), (order if order is not None else ""))
     return offer_list
 
 
