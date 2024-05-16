@@ -14,4 +14,4 @@ COPY . .
 
 # demarrer l'application
 EXPOSE 8081
-CMD ["python3","-m","uvicorn","main:app","--host","0.0.0.0","--reload","--port","8081","--env-file",".env"]
+CMD ["python3","-m","uvicorn","main:app","--host","0.0.0.0","--reload","--port","8081","--env-file",".env.prod"]
