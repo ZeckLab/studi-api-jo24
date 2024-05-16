@@ -1,3 +1,4 @@
+from sqlalchemy import ColumnElement, Select
 from sqlalchemy.orm import Session
 
 from src.core.models.Offer import Offer
@@ -22,19 +23,32 @@ async def get_by_title(db: Session, title: str) -> Offer | None:
 
 
 '''Get all offers in the database or only the visible offers in the database'''
-async def get_all(db: Session, type: str) -> list[OfferInDB]:
+async def get_all(db: Session, type: str, column: str, order: str) -> list[OfferInDB]:
     result = []
+    
+    # Select the offers
+    statement = Select(Offer)
+    
+    # old example
+    #result = db.query(Offer).filter(Offer.visible == True).order_by(column_elem.desc()).all()
     
     if type == "visible":
         # Get only the visible offers
-        result = db.query(Offer).filter(Offer.visible == True).all()
-    else:
-        # Get all the offers
-        result = db.query(Offer).all()
+        statement = statement.where(Offer.visible == True)
+    
+    # Sort the offers by column
+    if(column != ""):
+        column_elem : ColumnElement = Offer.__table__.columns[column]
+            
+        if order == "desc":
+            statement = statement.order_by(column_elem.desc())
+        else:
+            statement = statement.order_by(column_elem)
+
+    result = db.execute(statement).scalars().all()
     
     # Return the list of offers offerInDB : model Pydantic
-    return [OfferInDB(offer_id=row.offer_id, title=row.title, description=row.description, nb_people=row.nb_people, price=row.price, image_url = row.image_url,
-                    visible=row.visible) for row in result]
+    return [OfferInDB.model_validate(row) for row in result]
 
 '''Create an offer in the database'''
 async def create(db: Session, offer: OfferBase) -> OfferInDB:
@@ -47,7 +61,7 @@ async def create(db: Session, offer: OfferBase) -> OfferInDB:
     db.refresh(new_offer)
     
     # Return the offer in a offerInDB : model Pydantic
-    return OfferInDB(offer_id=new_offer.offer_id, title=new_offer.title, description=new_offer.description, nb_people=new_offer.nb_people, price=new_offer.price, image_url = new_offer.image_url, visible=new_offer.visible)
+    return OfferInDB.model_validate(new_offer)
 
 '''Update an offer in the database'''
 async def update(offer: Offer, offer_in: OfferBase, db: Session) -> OfferInDB:
@@ -61,17 +75,14 @@ async def update(offer: Offer, offer_in: OfferBase, db: Session) -> OfferInDB:
     db.refresh(offer)
     
     # Return the offer in a offerInDB : model Pydantic
-    return OfferInDB(offer_id=offer.offer_id, title=offer.title, description=offer.description, nb_people=offer.nb_people, price=offer.price, image_url = offer.image_url, visible=offer.visible)
+    return OfferInDB.model_validate(offer)
 
+'''Update the visibility of an offer in the database'''
 async def update_visibility(offer:Offer, db: Session) -> OfferInDB:
     # Update the offer visibility
     offer.visible = not offer.visible
     db.commit()
     db.refresh(offer)
     
-    offer_db = OfferInDB.model_validate(offer)
-    print(offer.offer_id)
-    print(offer.title)
-    
     # Return the offer in a offerInDB : model Pydantic
-    return offer_db
+    return OfferInDB.model_validate(offer)
