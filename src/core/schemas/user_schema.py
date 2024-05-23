@@ -29,7 +29,11 @@ class UserBase(BaseModel):
 class UserEmailExist(BaseModel):
     email: str
     exist: bool
-    
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
 class StaffCreate(UserBase):
     password: str
     role_names: list[str] = []
