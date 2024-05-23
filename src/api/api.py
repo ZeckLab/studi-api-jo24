@@ -8,21 +8,21 @@ router = APIRouter()
 router.include_router(
     event_endpoint.router,
     prefix="/events",
-    tags=["Event"],
+    tags=["events"],
     responses={404: {"description": "Not found"}},
 )
 
 router.include_router(
     offer_endpoint.router,
     prefix="/offers",
-    tags=["Offer"],
+    tags=["offers"],
     responses={404: {"description": "Not found"}},
 )
 
 router.include_router(
     user_endpoint.router,
     prefix="/users",
-    tags=["User"],
+    tags=["users"],
     responses={404: {"description": "Not found"}},
 )
 
