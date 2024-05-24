@@ -8,4 +8,4 @@ class ErrorCode:
     ROLE_NAME_ALREADY_EXISTS = "Role name already exists"
     
     USER_EMAIL_ALREADY_EXISTS = "The user with this email already exists in the system"
-    INVALID_EMAIL_OR_PASSWORD = "Invalid email or password"
+    INVALID_EMAIL_OR_PASSWORD = "Invalid password for this email"
