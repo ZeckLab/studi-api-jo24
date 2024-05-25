@@ -50,7 +50,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     db_user = await user_controller.get_user_by_email(db, form_data.username)
     
     if not security.verify_password(form_data.password, db_user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=ErrorCode.INVALID_EMAIL_OR_PASSWORD)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=ErrorCode.INVALID_PASSWORD)
     elif not db_user.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ErrorCode.USER_NOT_ACTIVE)
     
