@@ -6,5 +6,5 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
-class TokenData(BaseModel):
-    email: EmailStr
+class TokenPayload(BaseModel):
+    sub: str | None = None

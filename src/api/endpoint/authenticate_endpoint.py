@@ -3,13 +3,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from src.core.security import security
+from jose import jwt, JWTError
+from pydantic import ValidationError
+from datetime import datetime
+
+from src.core.models.User import User
+from src.core.config import security
 from src.core.config.database import get_db
 from .constants import ErrorCode
-from src.core.schemas.user_schema import UserEmailExist, UserInDB, UserRegister, UserLogin, UserInResponse
-from src.core.schemas.token_schema import Token
+from src.core.schemas.user_schema import UserEmailExist, UserInDB, UserRegister
+from src.core.schemas.token_schema import Token, TokenPayload
 from src.core.controllers import user_controller
 from src.core.config import config
+from src.core.config.security import authentication_mode
 
 router = APIRouter()
 
@@ -50,9 +56,37 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     db_user = await user_controller.get_user_by_email(db, form_data.username)
     
     if not security.verify_password(form_data.password, db_user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=ErrorCode.INVALID_PASSWORD)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=ErrorCode.USER_INVALID_PASSWORD)
+
     elif not db_user.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ErrorCode.USER_NOT_ACTIVE)
     
     access_token_expires = timedelta(minutes=config.JWT_EXPIRE)
+
     return Token(access_token=security.create_access_token({'sub':db_user.email}, expires_delta=access_token_expires))
+
+
+'''Get the current user logged'''
+async def get_current_user(db: Session = Depends(get_db), token: str = Depends(authentication_mode)) -> User:
+    try:
+        # decode the token
+        payload = jwt.decode(
+            token, config.JWT_SECRET, config.JWT_ALGO
+        )
+        
+        token_data = TokenPayload(**payload)
+        print("Temps", datetime.fromtimestamp(payload.get("exp")))
+        
+    except (JWTError, ValidationError):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ErrorCode.USER_NOT_CREDENTIALS)
+    
+    # get the user by email
+    user = await user_controller.get_user_by_email(db, token_data.sub)
+    
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ErrorCode.USER_NOT_FOUND)
+    
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ErrorCode.USER_NOT_ACTIVE)
+    
+    return user

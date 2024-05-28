@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
-from src.core.security import security
+
+from src.core.config import security
 from src.core.models.User import User, Role
 from src.core.schemas.user_schema import StaffInDB, UserInDB, UserBase, UserRegister, UserUpdate, UpdatePassword, StaffCreate, StaffUpdate, RoleBase, RoleInDB, UserRoleBase
 

@@ -3,6 +3,7 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table, Text
 from sqlalchemy.orm import relationship
 
 from src.core.config.database import Base
+from src.core.models.Order import Order
 
 class UserRole(Base):
     __tablename__ = "user_role"
@@ -33,3 +34,4 @@ class User(Base):
     keygen = Column(String(255))
     is_active = Column(Boolean, server_default="true")
     roles = relationship('Role', secondary='user_role', back_populates="users")
+    orders = relationship(Order, back_populates="user")
