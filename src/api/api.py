@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from src.api.endpoint import authenticate_endpoint, event_endpoint, user_endpoint
+from src.api.endpoint import authenticate_endpoint, event_endpoint, user_endpoint, order_endpoint
 from src.api.endpoint import offer_endpoint
 
 router = APIRouter()
@@ -16,6 +16,13 @@ router.include_router(
     offer_endpoint.router,
     prefix="/offers",
     tags=["offers"],
+    responses={404: {"description": "Not found"}},
+)
+
+router.include_router(
+    order_endpoint.router,
+    prefix="/orders",
+    tags=["orders"],
     responses={404: {"description": "Not found"}},
 )
 
