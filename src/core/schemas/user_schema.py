@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
+
+from src.core.schemas.order_schema import OrderBase
 
 # Role Schema : Pydantic Model
 class RoleBase(BaseModel):
@@ -61,7 +63,10 @@ class UpdatePassword(BaseModel):
 class StaffInDB(UserBase):
     user_id: int
     hashed_password: str
-    
+
+class UserOrders(UserBase):
+    orders: list["OrderBase"] | None = []
+
 class UserInDB(UserBase):
     user_id: int
     phone_number: str
