@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+
 from src.core.config import security
 from src.core.models.User import User, Role
 from src.core.schemas.user_schema import StaffInDB, UserInDB, UserBase, UserRegister, UserUpdate, UpdatePassword, StaffCreate, StaffUpdate, RoleBase, RoleInDB, UserRoleBase
@@ -143,7 +144,6 @@ async def register_user(db: Session, user: UserRegister) -> User:
     new_user = User(email=user.email, first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
                     hashed_password=security.get_password_hash(user.password), keygen=security.get_keygen_hash(user.email),
                     roles=[role])
-    
     
     # Insert the user object in the database
     db.add(new_user)
