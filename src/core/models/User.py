@@ -20,6 +20,9 @@ class Role(Base):
     name = Column(String(50), index=True, nullable=False, unique=True)
     description = Column(Text, nullable=False)
     users = relationship('User', secondary='user_role', back_populates="roles")
+    
+    def __repr__(self):
+        return f"<Role {self.name}>"
 
 
 class User(Base):
@@ -35,3 +38,6 @@ class User(Base):
     is_active = Column(Boolean, server_default="true")
     roles = relationship('Role', secondary='user_role', back_populates="users")
     orders = relationship(Order, back_populates="user")
+    
+    def __repr__(self):
+        return f"<User {self.email}>"

@@ -10,7 +10,7 @@ async def get_by_id(db: Session, id: int) -> OfferInDB:
     result = db.query(Offer).filter(Offer.offer_id == id).first()
     
     # Return the offer in a OfferInDB : model Pydantic
-    return OfferInDB(offer_id=result.offer_id, title=result.title, description=result.description, nb_people=result.nb_people, price=result.price, image_url = result.image_url, visible=result.visible)
+    return OfferInDB.model_validate(result)
 
 
 '''Get an offer by its title in the database'''
