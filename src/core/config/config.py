@@ -7,3 +7,6 @@ JWT_ALGO: str = config("ALGORITHM")
 JWT_SECRET: str = config("SECRET_KEY")
 
 DATABASE_URI = config("DATABASE_URL")
+
+ADMIN_EMAIL = config("ADMIN_EMAIL")
+ADMIN_PASSWORD = config("ADMIN_PASSWORD")
