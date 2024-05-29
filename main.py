@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import api
-from src.core.config.database import Base, engine
+from src.core.config.initialization import initiate
 
-Base.metadata.create_all(bind=engine)
+initiate()
 
 app = FastAPI()
 
