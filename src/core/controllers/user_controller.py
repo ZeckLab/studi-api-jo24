@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.core.config import security
 from src.core.models.User import User, Role
-from src.core.schemas.user_schema import StaffInDB, UserInDB, UserBase, UserRegister, UserUpdate, UpdatePassword, StaffCreate, StaffUpdate, RoleBase, RoleInDB, UserRoleBase
+from src.core.schemas.user_schema import StaffInDB, UserInDB, UserRegister, StaffCreate, StaffUpdate, RoleBase, RoleInDB
 
 """Role Controller"""
 '''Get a role by its id in the database'''
@@ -27,7 +27,7 @@ async def get_role_by_name(db: Session, name: str) -> Role | None:
 
 
 '''Get all roles in the database'''
-async def get_all(db: Session) -> list[RoleInDB]:
+async def get_all_roles(db: Session) -> list[RoleInDB]:
     result = []
     
     # Get all the roles
@@ -37,8 +37,15 @@ async def get_all(db: Session) -> list[RoleInDB]:
     return [RoleInDB.model_validate(row) for row in result]
 
 
+'''Get all roles of user connected'''
+def get_user_roles(user= User) -> list[str]:
+    # Get all the roles for user connected
+    # Return the list of roles RoleName : model Pydantic
+    return [role.name for role in user.roles]
+
+
 '''Create a role in the database'''
-async def create(db: Session, role: RoleBase) -> RoleInDB:
+async def create_role(db: Session, role: RoleBase) -> RoleInDB:
     # Create the role object
     new_role = Role(name=role.name, description=role.description)
     
@@ -52,7 +59,7 @@ async def create(db: Session, role: RoleBase) -> RoleInDB:
 
 
 '''Update a role in the database'''
-async def update(role: Role, role_in: RoleBase, db: Session) -> RoleInDB:
+async def update_role(role: Role, role_in: RoleBase, db: Session) -> RoleInDB:
     # Update the role if it exists
     role.name = role_in.name
     role.description = role_in.description
