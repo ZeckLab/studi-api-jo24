@@ -5,7 +5,7 @@ from src.api.endpoint.authenticate_endpoint import get_current_user
 from src.core.config.database import get_db
 from src.core.config.security import authentication_mode
 from .constants import ErrorCode
-from src.core.schemas.user_schema import RoleBase, RoleInDB, RoleName
+from src.core.schemas.user_schema import RoleBase, RoleInDB
 from src.core.controllers import user_controller
 
 
