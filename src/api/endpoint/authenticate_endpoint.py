@@ -37,15 +37,14 @@ async def login(email: str, db: Session = Depends(get_db)):
     """
     Vérify if the email is already in the database
     """
-    print("email_in",email)
     user_exist = UserEmailExist(email=email, exist=False)
     
     db_user = await user_controller.get_user_by_email(db, email)
     if db_user:
-        print("User exist",db_user)
         user_exist.exist = True
     
     return user_exist
+
 
 @router.post("/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
@@ -66,8 +65,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     return Token(access_token=security.create_access_token({'sub':db_user.email}, expires_delta=access_token_expires))
 
 
-'''Get the current user logged'''
-async def get_current_user(db: Session = Depends(get_db), token: str = Depends(authentication_mode)) -> User:
+'''Get the user logged in token'''
+async def get_user_in_token(db: Session = Depends(get_db), token: str = Depends(authentication_mode)) -> User:
+    '''Get the user logged in token
+    :param db: the database session
+    :param token: the token of the user
+    :return: the user logged in token
+    '''
     try:
         # decode the token
         payload = jwt.decode(
@@ -90,3 +94,17 @@ async def get_current_user(db: Session = Depends(get_db), token: str = Depends(a
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ErrorCode.USER_NOT_ACTIVE)
     
     return user
+
+
+'''Get the current admin user logged in token'''
+def get_admin_in_token(user_in_token: User = Depends(get_user_in_token)) -> User:
+    '''Get the current admin user logged in token
+    :param user_in_token: the user logged in token
+    :return: the current admin user logged in token
+    '''
+    
+    if "admin" not in user_controller.get_user_roles(user_in_token):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=ErrorCode.USER_NOT_CREDENTIALS
+        )
+    return user_in_token
