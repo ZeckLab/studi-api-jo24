@@ -1,7 +1,7 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.api.endpoint.authenticate_endpoint import get_current_user
+from src.api.endpoint.authenticate_endpoint import get_user_in_token
 from src.core.config.database import get_db
 from src.core.config.security import authentication_mode
 from .constants import ErrorCode
@@ -29,9 +29,9 @@ async def add_role(role_in: RoleBase, db=Depends(get_db)) -> Any:
     return role_in_db
 
 
-'''Get the roles of the user connected'''
+'''Get the roles of the user connected in the token'''
 @router.get("/me/roles", dependencies=[Depends(authentication_mode)], response_model=list[str])
-def get_roles_user(db=Depends(get_db), user= Depends(get_current_user)) -> Any:
+def get_roles_user(db=Depends(get_db), user= Depends(get_user_in_token)) -> Any:
     """
     Get the list of roles for the user connected
     """

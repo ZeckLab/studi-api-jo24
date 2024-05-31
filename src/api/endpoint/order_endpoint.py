@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from src.api.endpoint.authenticate_endpoint import get_current_user
+from src.api.endpoint.authenticate_endpoint import get_user_in_token
 from src.core.models.User import Role
 from src.core.schemas.order_schema import OrderInDB, OrderCreate, OrderViewUser
 import src.core.controllers.order_controller as order_controller
@@ -14,7 +14,7 @@ router = APIRouter()
 
 '''Create a new order'''
 @router.post("", dependencies=[Depends(authentication_mode)], response_model=OrderInDB)
-async def create_order(offer_in: OrderCreate, db=Depends(get_db), user= Depends(get_current_user)):
+async def create_order(offer_in: OrderCreate, db=Depends(get_db), user= Depends(get_user_in_token)):
     '''Create a new order
     :param offer_in: the order to create
     :param db: the database session
@@ -28,7 +28,7 @@ async def create_order(offer_in: OrderCreate, db=Depends(get_db), user= Depends(
 
 '''Get all orders of the current user with the details of the order'''
 @router.get("", dependencies=[Depends(authentication_mode)], response_model=list[OrderViewUser])
-async def get_orders(db: Session = Depends(get_db), user= Depends(get_current_user)):
+async def get_orders(db: Session = Depends(get_db), user= Depends(get_user_in_token)):
     '''Get all orders of the current user with the details of the order
     :param db: the database session
     :param user: the user

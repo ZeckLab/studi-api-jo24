@@ -21,3 +21,8 @@ class OfferOrderView(BaseModel):
     title: str
     nb_people: int
     price: float
+
+
+class OfferTitleExist(BaseModel):
+    title: str
+    exist: bool

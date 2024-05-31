@@ -1,17 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from src.core.schemas.offer_schema import OfferInDB, OfferBase
+from src.core.schemas.offer_schema import OfferInDB, OfferBase, OfferTitleExist
 from src.core.models.Offer import Offer
 import src.core.controllers.offer_controller as offer_controller
 from src.core.config.database import get_db
 from .constants import ErrorCode
+from src.core.config.security import authentication_mode
+from src.api.endpoint.authenticate_endpoint import get_admin_in_token
 
 
 router = APIRouter()
 
-'''Create a new offer'''
-@router.post("", response_model=OfferInDB)
+'''Create a new offer - admin only'''
+@router.post("", dependencies=[Depends(get_admin_in_token)], response_model=OfferInDB)
 async def create_offer(offer_in: OfferBase, db=Depends(get_db)):
     # Check if the offer title already exists
     offer_title_exist = await offer_controller.get_by_title(db, offer_in.title)
@@ -59,8 +61,22 @@ async def get_offer(offer_id: int, db=Depends(get_db)):
     return offer_return
 
 
-'''Update a offer'''
-@router.put("/{offer_id}", response_model=OfferInDB)
+'''Get a offer by title'''
+@router.get("/title/{title}", response_model=OfferTitleExist)
+async def get_offer_by_title(title: str, db=Depends(get_db)):
+    title_exist = OfferTitleExist(title=title, exist=False)
+    
+    # Check if the offer exists
+    offer = await offer_controller.get_by_title(db, title)
+    if offer:
+        title_exist.exist = True
+    
+    # Get the offer
+    return title_exist
+
+
+'''Update a offer - admin only'''
+@router.put("/{offer_id}", dependencies=[Depends(get_admin_in_token)], response_model=OfferInDB)
 async def update_offer(offer_id: int, offer_in: OfferBase, db=Depends(get_db)):
     # Check if the offer exists
     offer = db.get(Offer, offer_id)
@@ -77,8 +93,9 @@ async def update_offer(offer_id: int, offer_in: OfferBase, db=Depends(get_db)):
     offer_return: OfferInDB = await offer_controller.update(offer, offer_in, db)
     return offer_return
 
-'''Update a offer visibility'''
-@router.put("/{offer_id}/visible", response_model=OfferInDB)
+
+'''Update a offer visibility - admin only'''
+@router.patch("/{offer_id}/visible", dependencies=[Depends(get_admin_in_token)], response_model=OfferInDB)
 async def update_offer_visibility(offer_id: int, db=Depends(get_db)):
     # Check if the offer exists
     offer = db.get(Offer, offer_id)
