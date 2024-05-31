@@ -18,9 +18,7 @@ async def get_role_by_id(db: Session, id: int) -> RoleInDB:
 '''Get a role by its name in the database'''
 async def get_role_by_name(db: Session, name: str) -> Role | None:
     # Get the role by its name
-    print("name Role passé en paramètre de la fonction get_role_by_name",name)
     session_role = db.query(Role).filter(Role.name == name).first()
-    print("session_role",session_role)
     
     # Return the role
     return session_role

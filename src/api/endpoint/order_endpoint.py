@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.api.endpoint.authenticate_endpoint import get_user_in_token
-from src.core.models.User import Role
 from src.core.schemas.order_schema import OrderInDB, OrderCreate, OrderViewUser
 import src.core.controllers.order_controller as order_controller
 from src.core.config.database import get_db

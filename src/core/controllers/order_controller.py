@@ -3,12 +3,12 @@ from sqlalchemy import Select
 from sqlalchemy.orm import Session
 
 from src.core.controllers import ticket_controller
-from src.core.controllers.utils import create_name_order, create_qrcode_ticket, create_transaction_order
+from src.core.controllers.utils import create_name_order, create_transaction_order
 from src.core.models.Ticket import Ticket
 from src.core.models.User import User
 from src.core.models.Order import Order
 from src.core.schemas.offer_schema import OfferOrderView
-from src.core.schemas.order_schema import OrderBase, OrderCreate, OrderInDB, OrderViewUser, Payment
+from src.core.schemas.order_schema import OrderCreate, OrderInDB, OrderViewUser, Payment
 from src.core.schemas.ticket_schema import OffersTicketView, TicketPublic
 from src.core.config.security import get_keygen_order_hash, get_transaction_hash
 from typing import Tuple
