@@ -25,7 +25,6 @@ async def signup(user_in: UserRegister, db=Depends(get_db)):
     """
     Register a new user
     """
-    print("user_in",user_in)
     # check if the email of user already exists
     user = await user_controller.register_user(db, user_in)
     
@@ -51,7 +50,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     """
     Login a user
     """
-    print("form_data",form_data)
     db_user = await user_controller.get_user_by_email(db, form_data.username)
     
     if not security.verify_password(form_data.password, db_user.hashed_password):
