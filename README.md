@@ -15,7 +15,13 @@ Connexion avec une base de données PostgreQSL
 
 ```python pip3 install -r ./requirements.txt ```
 
-- create env file named '.env' in the root of the project to configure your database
+- create env file named '.env' in the root of the project to configure your database and your secrets :
+    * DATABASE_URL
+    * ALGORITHM = Algorithm used to encode the JWToken
+    * SECREY_KEY = your secret key to encode the JWToken
+    - ADMIN_EMAIL = user admin created when the server is launched
+    - ADMIN_PASSWORD = in clear to be hashed in the database
+
 - launch app with :
 ```python -m uvicorn main:app --reload```
 
