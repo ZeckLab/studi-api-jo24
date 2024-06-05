@@ -49,9 +49,7 @@ class StaffUpdate(UserBase):
 class UserRegister(UserBase):
     password: str
     phone_number: str
-
-class UserProfile(UserBase):
-    phone_number: str
+    role_names: list[str] = []
 
 class UserUpdate(UserBase):
     first_name: str | None = None
