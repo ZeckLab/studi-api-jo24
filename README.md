@@ -28,3 +28,5 @@ Connexion avec une base de données PostgreQSL
 - go to http://127.0.0.1:8000
 - go to https://studi-api-jo24.azurewebsites.net/docs to see the api docs
 - go to https://studi-api-jo24.azurewebsites.net/api/events to see the events via the endpoint
+- go to https://preprod-studi-api-jo24.azurewebsites.net/docs to see the api docs of the preprod version (branch develop)
+- go to https://preprod-studi-api-jo24.azurewebsites.net/api/events to see the events via the endpoint of the preprod version (branch develop)
