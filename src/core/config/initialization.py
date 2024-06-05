@@ -9,11 +9,18 @@ def initiate():
     Base.metadata.create_all(bind=engine)
     
     with Session(bind=engine) as session:
-    # create the first role if it does not exist
-        role = session.query(Role).filter(Role.name == "admin").first()
-        if role is None:
-            role = Role(name="admin", description="Administrator. All permissions.")
-            session.add(role)
+        # create the web application user role if it does not exist
+        role_user = session.query(Role).filter(Role.name == config.USER_WEB_APPLICATION_NAME_ROLE).first()
+        if role_user is None:
+            role_user = Role(name=config.USER_WEB_APPLICATION_NAME_ROLE, description=config.USER_WEB_APPLICATION_DESC_ROLE)
+            session.add(role_user)
+            session.commit()
+        
+        # create the web application admin role if it does not exist
+        role_admin = session.query(Role).filter(Role.name == config.ADMIN_WEB_APPLICATION_NAME_ROLE).first()
+        if role_admin is None:
+            role_admin = Role(name=config.ADMIN_WEB_APPLICATION_NAME_ROLE, description=config.ADMIN_WEB_APPLICATION_DESC_ROLE)
+            session.add(role_admin)
             session.commit()
 
         # create the admin user if it does not exist
@@ -23,6 +30,6 @@ def initiate():
                         hashed_password=security.get_password_hash(config.ADMIN_PASSWORD),
                         first_name="Admin",
                         last_name="Admin",
-                        roles=[role])
+                        roles=[role_admin])
             session.add(admin)
             session.commit()

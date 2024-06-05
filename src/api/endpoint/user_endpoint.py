@@ -5,7 +5,7 @@ from src.api.endpoint.authenticate_endpoint import get_user_in_token
 from src.core.config.database import get_db
 from src.core.config.security import authentication_mode
 from .constants import ErrorCode
-from src.core.schemas.user_schema import RoleBase, RoleInDB
+from src.core.schemas.user_schema import RoleBase, RoleInDB, UserProfile
 from src.core.controllers import user_controller
 
 
@@ -40,3 +40,28 @@ def get_roles_user(db=Depends(get_db), user= Depends(get_user_in_token)) -> Any:
     
     roles = user_controller.get_user_roles(user)
     return roles
+
+
+'''Get the user connected in the token'''
+@router.get("/me", dependencies=[Depends(authentication_mode)], response_model=UserProfile)
+def get_profile(db=Depends(get_db), user= Depends(get_user_in_token)) -> UserProfile:
+    """
+    Get the user connected
+    """
+    if(user is None):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    
+    return UserProfile.model_validate(user)
+
+
+'''Update the profile of user connected in the token'''
+@router.put("/me", dependencies=[Depends(authentication_mode)], response_model=UserProfile)
+async def update_profile(user_in: UserProfile, db=Depends(get_db), user= Depends(get_user_in_token)) -> UserProfile:
+    """
+    Update the profile of user connected in the token
+    """
+    if(user is None):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    
+    user_updated = await user_controller.update_user(user, user_in, db)
+    return UserProfile.model_validate(user_updated)
