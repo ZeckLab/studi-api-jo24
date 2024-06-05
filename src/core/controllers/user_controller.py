@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 
 
-from src.core.config import security
+from src.core.config import security, config
 from src.core.models.User import User, Role
-from src.core.schemas.user_schema import StaffInDB, UserInDB, UserRegister, StaffCreate, StaffUpdate, RoleBase, RoleInDB
+from src.core.schemas.user_schema import StaffInDB, UserInDB, UserProfile, UserRegister, StaffCreate, StaffUpdate, RoleBase, RoleInDB, UserUpdate
 
 """Role Controller"""
 '''Get a role by its id in the database'''
@@ -137,13 +137,8 @@ async def update_staff(staff: User, staff_in: StaffUpdate, db: Session) -> Staff
 
 '''Register a user in the database'''
 async def register_user(db: Session, user: UserRegister) -> User:
-    # Get the model of the UserRegister
-    user_model = user.model_dump()
-    
-    # Delete the role_names from the model and get the Role object in database
-    role_name = user_model.pop("role_names")
     # the basic user has only one role : 'user' (going to put in a parametrable variable)
-    role : Role = await get_role_by_name(db, role_name[0])
+    role : Role = await get_role_by_name(db, config.USER_WEB_APPLICATION_NAME_ROLE)
     
     # Create the user object
     new_user = User(email=user.email, first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
@@ -157,3 +152,16 @@ async def register_user(db: Session, user: UserRegister) -> User:
     
     # Return the user in a UserInDB : model Pydantic
     return new_user
+
+
+'''Update a user in the database'''
+async def update_user(user: User, user_in: UserUpdate, db: Session) -> User:
+    # Update the user if it exists
+    user.first_name = user_in.first_name
+    user.last_name = user_in.last_name
+    user.phone_number = user_in.phone_number
+    db.commit()
+    db.refresh(user)
+
+    # Return the user
+    return user
