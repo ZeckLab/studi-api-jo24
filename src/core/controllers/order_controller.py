@@ -1,16 +1,17 @@
 from datetime import datetime, timezone
-from sqlalchemy import Select
+from sqlalchemy import Select, func
 from sqlalchemy.orm import Session
 
-from src.core.controllers import ticket_controller
+from src.core.controllers import ticket_controller, user_controller
 from src.core.controllers.utils import create_name_order, create_transaction_order
 from src.core.models.Ticket import Ticket
 from src.core.models.User import User
 from src.core.models.Order import Order
 from src.core.schemas.offer_schema import OfferOrderView
-from src.core.schemas.order_schema import OrderCreate, OrderInDB, OrderViewUser, Payment
+from src.core.schemas.order_schema import OrderBase, OrderCreate, OrderInDB, OrderViewAdmin, OrderViewUser, OrdersView, Payment
 from src.core.schemas.ticket_schema import OffersTicketView, TicketPublic
 from src.core.config.security import get_keygen_order_hash, get_transaction_hash
+from src.core.config import config
 from typing import Tuple
 
 from src.core.utils.qr_code import generate_qrcode
@@ -42,51 +43,58 @@ async def create(db: Session, order: OrderCreate, user: User) -> OrderInDB:
     # Return the user in a StaffInDB : model Pydantic
     return OrderInDB.model_validate(new_order)
 
-'''Get all orders of the current user'''
-async def get_all_for_user(db: Session, user: User) -> list[OrderViewUser]:
-    '''Get all orders of the current user with the details of the order
+'''Get order by name'''
+async def get_by_name(db: Session, order_name: str) -> Order:
+    '''Get the order by name
+    :param db: the database session
+    :param order_name: the order name
+    :return: the order id
+    '''
+    statement = Select(Order).where(Order.name == order_name)
+    order = db.execute(statement).scalars().one()
+    
+    return order
+
+
+'''Get all orders'''
+async def get_all(db: Session, user: User) -> OrdersView:
+    '''Get all orders
+    if the user is a user, it will return all orders for the user and the ticket associated
+    else, it will return all orders for the back-office
     :param db: the database session
     :param user: the user
-    :return: a list of orders with the details of the order and the ticket associated
+    :return: a list of orders with the details of the order and the ticket associated for the user
+        and the list of orders for the back-office
     '''
     
-    # prepare the query statement
-    statement = Select(Order).where(Order.user_id == user.user_id).order_by(Order.date_time.desc())
+    user_role = config.USER_WEB_APPLICATION_NAME_ROLE in user_controller.get_user_roles(user)
+    
+    count_order_stm = Select(func.count(Order.order_id)).select_from(Order)
+    statement = Select(Order)
+    
+    # if the user is an application user, get all orders for the user
+    if user_role:
+        count_order_stm = count_order_stm.where(Order.user_id == user.user_id)
+        statement = statement.where(Order.user_id == user.user_id)
+    
+    # order by date_time descending
+    statement = statement.order_by(Order.date_time.desc())
+    
+    count_orders = db.execute(count_order_stm).scalars().one()
+    print(count_orders)
     result = db.execute(statement).scalars().all()
     
-    orders_user : list[OrderViewUser] = []
+    orders_user = []
     
     # get the mount and the number of places for each order
     for row in result:
-        ticket_public, details = await get_details(db, row.order_id)
-        ticket_public.last_name= user.last_name;
-        ticket_public.first_name= user.first_name;
-        order_user = OrderViewUser(name= row.name, date_time= row.date_time, ticket=ticket_public, details= details)
-        orders_user.append(order_user)
+        ticket_public, details, places, mount = await ticket_controller.get_ticket_offers_by_order(db, row)
     
-    return orders_user
-
-
-'''Get the ticket linked to the order and the offers associated to the ticket'''
-async def get_details(db: Session, order_id: int) -> Tuple[TicketPublic,list[OffersTicketView]]:
-    '''Get the ticket linked to the order and the offers associated to the ticket - summary cart
-    :param db: the database session
-    :param order_id: the order id
-    :return: the ticket to display and a list of offers associated to the ticket
-    '''
-    statement = Select(Ticket).where(Ticket.order_id == order_id)
-    ticket: Ticket = db.execute(statement).scalars().first()
-
-    places = 0
-    details: list[OffersTicketView] = []
+        if user_role:
+            order_user = OrderViewUser(name= row.name, date_time= row.date_time, ticket=ticket_public, details= details)
+            orders_user.append(order_user)
+        else:
+            order_user = OrderViewAdmin(name= row.name, date_time= row.date_time, user= f"{row.user.first_name} {row.user.last_name}", mount=mount, places=places)
+            orders_user.append(order_user)
     
-    # for each associated offer, get the offer and the quantity
-    for ligne in ticket.offers:
-        offer_in_view = OfferOrderView(**ligne.offer.__dict__)
-        places += ligne.quantity * ligne.offer.nb_people
-        details.append(OffersTicketView(quantity=ligne.quantity, offer=offer_in_view))
-    
-    qrcode = generate_qrcode(ticket.keygen_qrcode)
-    ticket_public = TicketPublic(qrcode= qrcode, nb_places= places, last_name= "", first_name= "")
-    
-    return ticket_public, details
+    return OrdersView(orders=orders_user, count=count_orders)

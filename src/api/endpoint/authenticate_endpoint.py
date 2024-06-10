@@ -101,7 +101,7 @@ def get_admin_in_token(user_in_token: User = Depends(get_user_in_token)) -> User
     :return: the current admin user logged in token
     '''
     
-    if "admin" not in user_controller.get_user_roles(user_in_token):
+    if config.ADMIN_WEB_APPLICATION_NAME_ROLE not in user_controller.get_user_roles(user_in_token):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail=ErrorCode.USER_NOT_CREDENTIALS
         )
