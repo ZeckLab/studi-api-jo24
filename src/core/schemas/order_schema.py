@@ -34,6 +34,19 @@ class OrderViewUser(OrderBase):
     ticket: TicketPublic
     details: list[OffersTicketView]
 
+class TicketOffers(BaseModel):
+    ticket : TicketPublic
+    details : list[OffersTicketView]
+
+class OrderViewAdmin(OrderBase):
+    user: str
+    mount : float
+    places : int
+
+class OrdersView(BaseModel):
+    orders: list[OrderViewUser] | list[OrderViewAdmin] = []
+    count: int
+
 
 class OrderInDB(OrderBase):
     order_id : int
