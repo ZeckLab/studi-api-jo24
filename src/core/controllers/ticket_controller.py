@@ -51,3 +51,24 @@ async def get_ticket_offers_by_order(db: Session, order: Order) -> Tuple[TicketP
     ticket_public = TicketPublic(qrcode= qrcode, nb_places= places, last_name= order.user.last_name, first_name= order.user.first_name)
     
     return ticket_public, details, places, mount
+
+
+'''Get the mount and the number of places on the ticket for the order'''
+async def get_mount_places_by_order(db: Session, order: Order) -> Tuple[float, int]:
+    '''Get the mount and the number of places on the ticket for the order
+    :param db: the database session
+    :param order: the order
+    :return: the the mount and the number of places on the ticket for the order
+    '''
+    statement = Select(Ticket).where(Ticket.order_id == order.order_id)
+    ticket: Ticket = db.execute(statement).scalars().first()
+
+    places = 0
+    mount = 0.0
+    
+    # for each associated offer, get the offer and the quantity
+    for ligne in ticket.offers:
+        places += ligne.quantity * ligne.offer.nb_people
+        mount += ligne.quantity * ligne.offer.price
+    
+    return mount, places

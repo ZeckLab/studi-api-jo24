@@ -12,3 +12,5 @@ class ErrorCode:
     USER_NOT_ACTIVE = "User is not active"
     USER_NOT_FOUND = "User not found"
     USER_NOT_CREDENTIALS = "Could not validate credentials"
+    
+    ORDER_DATE_INVALID = "Invalid date"

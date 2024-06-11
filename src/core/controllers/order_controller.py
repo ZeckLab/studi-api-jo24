@@ -57,12 +57,14 @@ async def get_by_name(db: Session, order_name: str) -> Order:
 
 
 '''Get all orders'''
-async def get_all(db: Session, user: User) -> OrdersView:
+async def get_all(db: Session, user: User, skip: int, limit: int) -> OrdersView:
     '''Get all orders
     if the user is a user, it will return all orders for the user and the ticket associated
     else, it will return all orders for the back-office
     :param db: the database session
     :param user: the user
+    :param skip: the number of orders to skip
+    :param limit: the number of orders to return
     :return: a list of orders with the details of the order and the ticket associated for the user
         and the list of orders for the back-office
     '''
@@ -76,12 +78,14 @@ async def get_all(db: Session, user: User) -> OrdersView:
     if user_role:
         count_order_stm = count_order_stm.where(Order.user_id == user.user_id)
         statement = statement.where(Order.user_id == user.user_id)
+    else:
+        # if not a user, get orders according to the limit and skip
+        statement = statement.offset(skip).limit(limit)
     
     # order by date_time descending
     statement = statement.order_by(Order.date_time.desc())
     
     count_orders = db.execute(count_order_stm).scalars().one()
-    print(count_orders)
     result = db.execute(statement).scalars().all()
     
     orders_user = []
@@ -98,3 +102,29 @@ async def get_all(db: Session, user: User) -> OrdersView:
             orders_user.append(order_user)
     
     return OrdersView(orders=orders_user, count=count_orders)
+
+
+'''Get all orders by date'''
+async def get_all_by_date(db: Session, order_date: str, skip: int, limit: int) -> OrdersView:
+    '''Get all orders by date for the back-office
+    :param db: the database session
+    :param order_date: the date of the orders
+    :param skip: the number of orders to skip
+    :param limit: the number of orders to return
+    :return: a list of orders
+    '''
+    count_order_stm = Select(func.count(Order.order_id)).select_from(Order).where(func.date(Order.date_time) == order_date)
+    count_orders = db.execute(count_order_stm).scalars().one()
+    
+    statement = Select(Order).where(func.date(Order.date_time) == order_date).order_by(Order.date_time.desc()).offset(skip).limit(limit)
+    
+    result = db.execute(statement).scalars().all()
+    
+    orders = []
+    
+    for row in result:
+        mount_order, places_order = await ticket_controller.get_mount_places_by_order(db, row)
+        order = OrderViewAdmin(name= row.name, date_time= row.date_time, user= f"{row.user.first_name} {row.user.last_name}", mount=mount_order, places=places_order)
+        orders.append(order)
+    
+    return OrdersView(orders=orders, count=count_orders)
